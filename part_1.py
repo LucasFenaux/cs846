@@ -102,7 +102,7 @@ def train_one_epoch(dataloader, tokenizer, model, opt, epoch):
 def main():
     tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base", max_length=max_length, truncation=True)
     model = T5ForSequenceClassification.from_pretrained("google-t5/t5-base", num_labels=5)
-
+    
     for param in model.parameters():
         param.requires_grad = False
 
