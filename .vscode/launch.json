@@ -8,9 +8,17 @@
             "name": "Test Model",
             "type": "debugpy",
             "request": "launch",
-            "program": "/home/b3schnei/cs846/test_model.py",
+            "program": "/home/b3schnei/cs846/ben_attempt_1.py",
             "console": "integratedTerminal",
             "justMyCode": false,
+            "args": [
+                "/home/b3schnei/cs846/config/hf_config.json"
+            ],
+            "env": {
+                "WANDB_MODE": "offline",
+                "CUDA_VISIBLE_DEVICES": "0",
+                "WANDB_PROJECT": "cs846"
+            }
         }
     ]
 }
