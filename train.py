@@ -14,7 +14,7 @@ import wandb
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-max_length = 1024
+max_length = 512
 
 class TextDataset(Dataset):
     def __init__(self, x, y, tokenizer):
