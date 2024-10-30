@@ -81,7 +81,7 @@ def main():
     training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-1]))[0]
 
     for param in model.parameters():
-        param.requires_grad = False
+        param.requires_grad = True
 
     for param in model.classification_head.parameters():
         param.requires_grad = True
