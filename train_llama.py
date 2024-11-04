@@ -1,12 +1,15 @@
 import torch.utils
-from transformers import AutoTokenizer, T5ForSequenceClassification, Trainer, TrainingArguments, HfArgumentParser
+from transformers import AutoTokenizer, LlamaForSequenceClassification, Trainer, TrainingArguments, HfArgumentParser
 import pandas as pd
 import torch
+from torch.optim.adam import Adam
+from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import f1_score
 from torch.utils.data import Dataset
 import os
 import sys
+import evaluate
 import numpy as np
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -82,18 +85,20 @@ def compute_metrics(output):
     return {'val_acc': accuracy, "val_f1": f1}
 
 def main():
-    tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-large", max_length=max_length, truncation=True)
-    model = T5ForSequenceClassification.from_pretrained("google-t5/t5-large", num_labels=5)
+
+    # Change model path here
+    model_name = "/home/b3schnei/pretrained/Llama-2-7b"
+    tokenizer = AutoTokenizer.from_pretrained(model_name, max_length=max_length, truncation=True)
+    model = LlamaForSequenceClassification.from_pretrained(model_name, num_labels=5, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",)
     parser = HfArgumentParser(TrainingArguments)
     training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-1]))[0]
 
     for param in model.parameters():
         param.requires_grad = True
 
-    for param in model.classification_head.parameters():
-        param.requires_grad = True
-
     train, val = preprocess_dataset(tokenizer)
+
+    val = torch.utils.data.Subset(val, list(range(10)))
 
     trainer = Trainer(model=model,
                     args=training_args,
