@@ -9,7 +9,6 @@ from sklearn.metrics import f1_score
 from torch.utils.data import Dataset
 import os
 import sys
-import evaluate
 import numpy as np
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -28,7 +27,7 @@ class TextDataset(Dataset):
         x = self.x[index]
         y = self.y[index]
 
-        item = self.tokenizer(x, return_tensors="pt", truncation=True, max_length=max_length, padding="max_length")
+        item = self.tokenizer(x, return_tensors="pt", truncation=True, max_length=max_length)
         item["input_ids"] =  item["input_ids"].squeeze(dim=0)
         item["attention_mask"] = item["attention_mask"].squeeze(dim=0)
         item["labels"] = y     
@@ -46,7 +45,6 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8):
                        + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
                        'Description: ' + train['Description'])
     
-    # TODO why is this cast to numpy()?
     x = train['Prompt'].to_numpy()
     y = train['Priority'].to_numpy()
     classes = {}
@@ -85,28 +83,42 @@ def compute_metrics(output):
     return {'val_acc': accuracy, "val_f1": f1}
 
 def main():
-
     # Change model path here
     model_name = "/home/b3schnei/pretrained/Llama-2-7b"
-    tokenizer = AutoTokenizer.from_pretrained(model_name, max_length=max_length, truncation=True)
-    model = LlamaForSequenceClassification.from_pretrained(model_name, num_labels=5, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, max_length=max_length, truncation=True
+    )
+    # Set the padding token
+    tokenizer.pad_token = tokenizer.eos_token
+
+    model = LlamaForSequenceClassification.from_pretrained(
+        model_name,
+        num_labels=5,
+        torch_dtype=torch.bfloat16,
+        attn_implementation="flash_attention_2",
+    )
+    # Update the model configuration
+    model.config.pad_token_id = tokenizer.pad_token_id
+
     parser = HfArgumentParser(TrainingArguments)
     training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-1]))[0]
 
     for param in model.parameters():
         param.requires_grad = True
 
+    for param in model.score.parameters():
+        param.requires_grad = True
+
     train, val = preprocess_dataset(tokenizer)
 
-    val = torch.utils.data.Subset(val, list(range(10)))
-
-    trainer = Trainer(model=model,
-                    args=training_args,
-                    train_dataset=train,
-                    eval_dataset=val,
-                    tokenizer=tokenizer,
-                    compute_metrics=compute_metrics
-                    )
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train,
+        eval_dataset=val,
+        tokenizer=tokenizer,
+        compute_metrics=compute_metrics,
+    )
     trainer.train()
 
 if __name__ == '__main__':

@@ -1,11 +1,11 @@
 {
     "overwrite_output_dir": true,
     "num_train_epochs": 5,
-    "per_device_train_batch_size": 32,
+    "per_device_train_batch_size": 8,
     "gradient_accumulation_steps": 1,
     "save_strategy": "steps",
     "save_steps": 1000,
-    "save_total_limit": 5,
+    "save_total_limit": 3,
     "learning_rate": 4e-5,
     "weight_decay": 0.01,
     "warmup_ratio": 0.03,
@@ -14,7 +14,7 @@
     "do_train": true,
     "report_to": "wandb",
     "evaluation_strategy": "steps",
-    "per_device_eval_batch_size": 32,
+    "per_device_eval_batch_size": 8,
     "eval_steps": 100,
-    "output_dir": "/home/b3schnei/cs846_output"
+    "output_dir": "/home/b3schnei/cs846_llama_output"
 }

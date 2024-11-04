@@ -28,7 +28,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "/home/b3schnei/cs846/config/hf_config.json"
+                "/home/b3schnei/cs846/config/hf_config_llama.json"
             ],
             "env": {
                 "WANDB_MODE": "offline",
