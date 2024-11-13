@@ -74,7 +74,7 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8):
 
 def compute_metrics(output):
     labels = output.label_ids
-    logits = output.predictions[0]
+    logits = output.predictions
     preds = np.argmax(logits, axis=-1)
 
     accuracy = (preds==labels).mean()

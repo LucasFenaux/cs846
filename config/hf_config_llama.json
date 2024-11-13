@@ -15,6 +15,6 @@
     "report_to": "wandb",
     "evaluation_strategy": "steps",
     "per_device_eval_batch_size": 8,
-    "eval_steps": 100,
+    "eval_steps": 400,
     "output_dir": "/home/b3schnei/cs846_llama_output"
 }
