@@ -12,7 +12,8 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "/home/b3schnei/cs846/config/hf_config.json"
+                "/home/b3schnei/cs846/config/hf_config.json",
+                "/home/b3schnei/cs846/shortened_train.csv"
             ],
             "env": {
                 "WANDB_MODE": "offline",
@@ -28,7 +29,8 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "/home/b3schnei/cs846/config/hf_config_llama.json"
+                "/home/b3schnei/cs846/config/hf_config_llama.json",
+                "/home/b3schnei/cs846/shortened_train.csv"
             ],
             "env": {
                 "WANDB_MODE": "offline",

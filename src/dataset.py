@@ -5,10 +5,10 @@ import pandas as pd
 
 class PromptDataset(Dataset):
 
-    def __init__(self):
+    def __init__(self, train_dataset_name='./updated_train.csv', test_dataset_name='./test.csv'):
         super().__init__()
-        self.train = pd.read_csv('./updated_train.csv')
-        self.test = pd.read_csv('test.csv')
+        self.train = pd.read_csv(train_dataset_name)
+        self.test = pd.read_csv(test_dataset_name)
         self.apply_prompt_template()
 
     def __getitem__(self, index):
