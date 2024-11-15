@@ -11,7 +11,7 @@ import numpy as np
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-max_length = 256
+max_length = 512
 
 class TextDataset(Dataset):
     def __init__(self, x, y, tokenizer):
@@ -35,8 +35,10 @@ class TextDataset(Dataset):
         return len(self.x)
 
 
-def preprocess_dataset(tokenizer, train_ratio: float = 0.8):
-    train = pd.read_csv('train.csv')
+def preprocess_dataset(tokenizer, train_ratio: float = 0.8, dataset_name='train.csv'):
+    print("RUNNING " + dataset_name)
+    train = pd.read_csv(dataset_name)
+
     train.dropna(inplace=True)  # remove the nans
     train['Prompt'] = (('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                        'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
@@ -45,7 +47,7 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8):
     
     # TODO why is this cast to numpy()?
     x = train['Prompt'].to_numpy()
-    y = train['Priority'].to_numpy()
+    y = train['Priority'].to_numpy(dtype=np.int32)
     classes = {}
     for inp, lab in zip(x, y):
         if lab not in classes.keys():
@@ -82,10 +84,11 @@ def compute_metrics(output):
     return {'val_acc': accuracy, "val_f1": f1}
 
 def main():
+    dataset_file = sys.argv[-1]
     tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-large", max_length=max_length, truncation=True)
     model = T5ForSequenceClassification.from_pretrained("google-t5/t5-large", num_labels=5)
     parser = HfArgumentParser(TrainingArguments)
-    training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-1]))[0]
+    training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-2]))[0]
 
     for param in model.parameters():
         param.requires_grad = True
@@ -93,7 +96,7 @@ def main():
     for param in model.classification_head.parameters():
         param.requires_grad = True
 
-    train, val = preprocess_dataset(tokenizer)
+    train, val = preprocess_dataset(tokenizer, dataset_name=dataset_file)
 
     trainer = Trainer(model=model,
                     args=training_args,
