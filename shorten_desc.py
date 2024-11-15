@@ -26,20 +26,22 @@ def main_vllm():
         base_url="http://localhost:8000/v1",
         api_key="token-abc123"
     )
-    train = pd.read_csv('train.csv')
-    train.dropna(inplace=True)  # remove the nans
-
-    new_train = train.copy()
+    mode = "train"
+    train = pd.read_csv(mode + '.csv')
+    # train.dropna(inplace=True)  # remove the nans
+    train.fillna('', inplace=True)
 
     train['Prompt'] = (
         "Shorten the following code bug text description while preserving information relevant to its severity/priority. "
         "Only output the shortened text description and nothing else. Below is the description: \n"
         + train['Description']
     )
+    train['Shortened Description'] = train['Description']
                 # ('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                 #  'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
                 # + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
                 # 'Description: ' + train['Description'])
+    new_train = train.copy()
 
     inputs = tqdm(train['Prompt'].to_numpy())
     shortened = SmoothedValue()
@@ -69,10 +71,10 @@ def main_vllm():
         # print(new_desc)
         # print('########################################################################')
         # new_train.iloc[i]['Description'] = new_desc
-        new_train.at[i, 'Description'] = new_desc
+        new_train.at[i, 'Shortened Description'] = new_desc
 
 
-    new_train.to_csv('shortened_train.csv', index=False)
+    new_train.to_csv(f'shortened_{mode}.csv', index=False)
 
 
 def main():
