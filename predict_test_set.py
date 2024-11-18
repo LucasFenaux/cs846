@@ -39,7 +39,7 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8, dataset_name='./shor
     print("RUNNING " + dataset_name)
     train = pd.read_csv(dataset_name)
 
-    train.dropna(inplace=True)  # remove the nans
+    train.fillna('', inplace=True)  # remove the nans
     train['Prompt'] = (('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                        'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
                        + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
@@ -47,7 +47,7 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8, dataset_name='./shor
     
     x = train['Prompt'].to_numpy()
     
-    
+
     y = train['Priority'].to_numpy(dtype=np.int32)
     classes = {}
     for inp, lab in zip(x, y):
