@@ -39,7 +39,7 @@ def preprocess_dataset(tokenizer, dataset_name='./shortened_test.csv'):
     print("RUNNING " + dataset_name)
     train = pd.read_csv(dataset_name)
 
-    train.dropna(inplace=True)  # remove the nans
+    train.fillna('', inplace=True)  # remove the nans
     train['Prompt'] = (('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                        'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
                        + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
@@ -57,7 +57,7 @@ def preprocess_dataset(tokenizer, dataset_name='./shortened_test.csv'):
 
     test_dataset = TextDataset(x_test, y_test,tokenizer)
 
-    return test_dataset
+    return test_dataset, train
 
 def compute_metrics(output):
     logits = output.predictions[0]
@@ -72,12 +72,12 @@ def main():
     training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))[0]
 
     for param in model.parameters():
-        param.requires_grad = True
+        param.requires_grad = False
 
     for param in model.classification_head.parameters():
-        param.requires_grad = True
+        param.requires_grad = False
 
-    test = preprocess_dataset(tokenizer)
+    test, df = preprocess_dataset(tokenizer)
 
     trainer = Trainer(model=model,
                     args=training_args,
@@ -87,6 +87,7 @@ def main():
                     )
     out = trainer.predict(test)
     preds = compute_metrics(out)
+    print(preds)
 
 if __name__ == '__main__':
     main()
