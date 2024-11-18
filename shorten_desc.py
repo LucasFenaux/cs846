@@ -28,7 +28,7 @@ def main_vllm():
     )
     mode = "train"
     train = pd.read_csv(mode + '.csv')
-    # train.fillna('', inplace=True)  # remove the nans
+    # train.dropna(inplace=True)  # remove the nans
     train.fillna('', inplace=True)
 
     train['Prompt'] = (
@@ -101,7 +101,7 @@ def main():
     model.generation_config.max_new_tokens = max_length
 
     train = pd.read_csv('train.csv')
-    train.fillna('', inplace=True)  # remove the nans
+    train.dropna(inplace=True)  # remove the nans
 
     new_train = train.copy()
 

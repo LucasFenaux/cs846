@@ -35,62 +35,41 @@ class TextDataset(Dataset):
         return len(self.x)
 
 
-def preprocess_dataset(tokenizer, train_ratio: float = 0.8, dataset_name='./shortened_test.csv'):
+def preprocess_dataset(tokenizer, dataset_name='./shortened_test.csv'):
     print("RUNNING " + dataset_name)
     train = pd.read_csv(dataset_name)
 
-    train.fillna('', inplace=True)  # remove the nans
+    train.dropna(inplace=True)  # remove the nans
     train['Prompt'] = (('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                        'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
                        + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
                        'Description: ' + train['Shortened Description'])
     
     x = train['Prompt'].to_numpy()
-    
+    y = np.zeros(len(x), dtype=np.int32)
+    x_test = []
+    y_test = []
 
-    y = train['Priority'].to_numpy(dtype=np.int32)
-    classes = {}
     for inp, lab in zip(x, y):
-        if lab not in classes.keys():
-            classes[lab] = [inp]
-        else:
-            classes[lab].append(inp)
+        x_test.append(inp)
+        y_test.append(lab)
 
-    x_train = []
-    y_train = []
-    x_val = []
-    y_val = []
-    for key in classes:
-        r_train = np.random.choice(classes[key], int(train_ratio * len(classes[key])), replace=False).tolist()
 
-        r_val = list(set(classes[key]) - set(r_train))
-        x_train += r_train
-        x_val += r_val
-        y_train += [key]*len(r_train)
-        y_val += [key]*len(r_val)
+    test_dataset = TextDataset(x_test, y_test,tokenizer)
 
-    train_dataset = TextDataset(x_train, y_train,tokenizer)
-    val_dataset = TextDataset(x_val, y_val, tokenizer)
-
-    return train_dataset, val_dataset
+    return test_dataset
 
 def compute_metrics(output):
-    labels = output.label_ids
     logits = output.predictions[0]
     preds = np.argmax(logits, axis=-1)
-
-    accuracy = (preds==labels).mean()
-    f1 = f1_score(labels, preds, average='macro')
-
-    return {'val_acc': accuracy, "val_f1": f1}
+    return preds
 
 def main():
-    dataset_file = sys.argv[-1]
-    model_path = "/xyz"
+    model_path = "/home/b3schnei/cs846_best_runs/cs846_output/checkpoint-6575"
     tokenizer = AutoTokenizer.from_pretrained(model_path, max_length=max_length, truncation=True)
     model = T5ForSequenceClassification.from_pretrained(model_path, num_labels=5)
     parser = HfArgumentParser(TrainingArguments)
-    training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[-2]))[0]
+    training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))[0]
 
     for param in model.parameters():
         param.requires_grad = True
@@ -98,16 +77,16 @@ def main():
     for param in model.classification_head.parameters():
         param.requires_grad = True
 
-    train, val = preprocess_dataset(tokenizer, dataset_name=dataset_file)
+    test = preprocess_dataset(tokenizer)
 
     trainer = Trainer(model=model,
                     args=training_args,
                     train_dataset=None,
                     eval_dataset=None,
                     tokenizer=tokenizer,
-                    compute_metrics=compute_metrics
                     )
-    #trainer.train()
+    out = trainer.predict(test)
+    preds = compute_metrics(out)
 
 if __name__ == '__main__':
     main()
