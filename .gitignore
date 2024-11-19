@@ -1,5 +1,5 @@
-./test_predictions.csv
-./shortened_train.csv
+test_predictions.csv
+shortened_train.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

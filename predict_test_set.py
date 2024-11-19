@@ -65,7 +65,7 @@ def compute_metrics(output):
     return preds
 
 def main():
-    model_path = "/home/b3schnei/cs846_best_runs/cs846_output/checkpoint-6575"
+    model_path = "/home/b3schnei/cs846_best_runs/cs846_output/checkpoint-3000"
     tokenizer = AutoTokenizer.from_pretrained(model_path, max_length=max_length, truncation=True)
     model = T5ForSequenceClassification.from_pretrained(model_path, num_labels=5)
     parser = HfArgumentParser(TrainingArguments)
@@ -87,7 +87,14 @@ def main():
                     )
     out = trainer.predict(test)
     preds = compute_metrics(out)
-    print(preds)
+    df["Predicted Priority"] = preds
+    # Specify the columns to keep
+    columns_to_keep = ['Issue_id', "Predicted Priority"]
+    # Keep only the specified columns
+    df = df.loc[:, columns_to_keep]
+    df = df.rename(columns={"Predicted Priority": 'Priority'})
+    # Save the DataFrame as a CSV file
+    df.to_csv('./test_predictions.csv', index=False)
 
 if __name__ == '__main__':
     main()
