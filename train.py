@@ -43,7 +43,7 @@ def preprocess_dataset(tokenizer, train_ratio: float = 0.8, dataset_name='train.
     train['Prompt'] = (('What is the priority (from 0, highest priority, to 4, lowest priority) of the code bug given the '
                        'following description. | Component: ') + train['Component'] + " | " + 'Title: ' + train['Title']
                        + " | " + 'Status: ' + train['Status'] + " | " + 'Resolution: ' + train['Resolution'] + " | " +
-                       'Description: ' + train['Description'])
+                       'Description: ' + train['Shortened Description'])
     
     # TODO why is this cast to numpy()?
     x = train['Prompt'].to_numpy()
